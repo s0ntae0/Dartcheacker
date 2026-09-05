@@ -5,6 +5,7 @@ import { ACTION_GUIDE, VERDICT_COPY, ruleMatch } from '@/lib/patterns';
 import { computeScore, type LlmPatternResult } from '@/lib/scoring';
 import { LLM_MODEL, LlmError, extractClaims, judgePatterns, type ClaimDraft } from '@/lib/llm';
 import { getSupabase } from '@/lib/supabase';
+import { resolveClaims } from '@/lib/verify';
 
 export const maxDuration = 60;
 export const dynamic = 'force-dynamic';
@@ -94,14 +95,8 @@ export async function POST(req: Request) {
     // 3. 점수 합산
     scored = computeScore(rule, llm);
 
-    // 4~5. 기업 매핑 + 공시 대조 (STEP 3/4)
-    claims = drafts.map((d) => ({
-      text: d.text,
-      type: d.type,
-      date_hint: d.date_hint,
-      verdict: 'unconfirmed',
-      detail: '공시 대조는 준비 중입니다',
-    }));
+    // 4~5. 기업 매핑 + 공시 대조
+    claims = await resolveClaims(drafts, degraded);
   } catch (e) {
     // 어떤 경우에도 500을 내지 않는다: 규칙층 결과로 응답
     pushUnique(degraded, 'internal_error');
