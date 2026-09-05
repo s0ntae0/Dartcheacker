@@ -276,7 +276,7 @@ export async function resolveClaims(drafts: ClaimDraft[], degraded: string[], ch
       }
       if (d.type === 'insider_claim') {
         claim.verdict = 'out_of_scope';
-        claim.detail = '공개 전 정보라는 주장은 구조적으로 검증 불가 — 사실이면 미공개중요정보 이용(자본시장법 174조), 거짓이면 사기. 어느 쪽도 매수 근거가 아닙니다';
+        claim.detail = '공개 전 정보라는 주장은 구조적으로 검증 불가 — 사실이면 미공개중요정보 이용(자본시장법 174조)에 해당할 수 있고, 사실이 아니면 매수 유인 표현입니다. 어느 쪽도 매수 근거가 아닙니다';
         return claim;
       }
 
