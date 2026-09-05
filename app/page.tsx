@@ -71,6 +71,21 @@ function Highlighted({ text, spans, markCls }: { text: string; spans: string[]; 
   return <p className="whitespace-pre-wrap break-words text-sm leading-6">{out}</p>;
 }
 
+function Linkify({ text }: { text: string }) {
+  const parts = text.split(/(https?:\/\/[^\s)]+)/g);
+  return (
+    <>
+      {parts.map((p, i) =>
+        /^https?:\/\//.test(p) ? (
+          <a key={i} href={p} target="_blank" rel="noopener noreferrer" className="text-blue-700 underline break-all">{p}</a>
+        ) : (
+          <span key={i}>{p}</span>
+        ),
+      )}
+    </>
+  );
+}
+
 function StageBar({ stage }: { stage: string }) {
   const hit = STAGE_MARKS.map((m) => stage.includes(m));
   const last = hit.lastIndexOf(true);
@@ -137,7 +152,7 @@ function ClaimRow({ c }: { c: Claim }) {
         {c.evidence?.corrected && <span className="text-[11px] px-1.5 py-0.5 rounded bg-orange-100 text-orange-800">정정 반영</span>}
       </div>
       <p className="mt-1.5 text-sm text-gray-900">“{c.text}”</p>
-      <p className="mt-1 text-sm text-gray-700">{c.detail}</p>
+      <p className="mt-1 text-sm text-gray-700"><Linkify text={c.detail} /></p>
       {c.evidence && (
         <p className="mt-1 text-xs">
           <a href={c.evidence.url} target="_blank" rel="noopener noreferrer" className="text-blue-700 underline">
@@ -145,7 +160,7 @@ function ClaimRow({ c }: { c: Claim }) {
           </a>
         </p>
       )}
-      {c.note && <p className="mt-1 text-xs text-gray-500 leading-5">{c.note}</p>}
+      {c.note && <p className="mt-1 text-xs text-gray-500 leading-5"><Linkify text={c.note} /></p>}
     </li>
   );
 }

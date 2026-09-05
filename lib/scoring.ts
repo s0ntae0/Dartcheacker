@@ -10,6 +10,12 @@ export interface LlmPatternResult {
 }
 
 const LLM_MIN_CONFIDENCE = 0.5;
+
+/** 중복 제거 + 다른 span에 포함되는 짧은 span 제거 */
+function tidySpans(spans: string[]): string[] {
+  const u = [...new Set(spans)];
+  return u.filter((s) => !u.some((o) => o !== s && o.includes(s)));
+}
 const BENIGN_PENALTY_CAP = 0.3;
 
 export interface ScoreResult {
@@ -35,7 +41,7 @@ export function computeScore(rule: { patterns: PatternHit[]; benign: BenignHit[]
       prev.confidence = Math.max(prev.confidence, h.confidence);
     } else merged.set(h.id, toHit(def, [...new Set(h.spans)], h.confidence));
   }
-  const patterns = [...merged.values()].sort((a, b) => a.id.localeCompare(b.id));
+  const patterns = [...merged.values()].map((p) => ({ ...p, spans: tidySpans(p.spans) })).sort((a, b) => a.id.localeCompare(b.id));
   const ids = new Set(patterns.map((p) => p.id));
   const hard = patterns.some((p) => p.hard);
 
@@ -48,7 +54,7 @@ export function computeScore(rule: { patterns: PatternHit[]; benign: BenignHit[]
     if (prev) prev.spans = [...new Set([...prev.spans, ...b.spans])];
     else benignMap.set(b.id, { id: def.id, label: def.label, spans: [...new Set(b.spans)] });
   }
-  const benign = [...benignMap.values()];
+  const benign = [...benignMap.values()].map((b) => ({ ...b, spans: tidySpans(b.spans) }));
 
   // 2. noisy-OR
   let score = 1;

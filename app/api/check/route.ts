@@ -6,6 +6,7 @@ import { computeScore, type LlmPatternResult } from '@/lib/scoring';
 import { LLM_MODEL, LlmError, extractClaims, judgePatterns, type ClaimDraft } from '@/lib/llm';
 import { getSupabase } from '@/lib/supabase';
 import { resolveClaims } from '@/lib/verify';
+import { fmtKst } from '@/lib/dart';
 
 export const maxDuration = 60;
 export const dynamic = 'force-dynamic';
@@ -66,6 +67,7 @@ export async function POST(req: Request) {
 
   const degraded: string[] = [];
   const errors: string[] = [];
+  const checkedAtKst = fmtKst();
 
   // 1. 규칙층 (동기)
   const rule = ruleMatch(text);
@@ -96,7 +98,7 @@ export async function POST(req: Request) {
     scored = computeScore(rule, llm);
 
     // 4~5. 기업 매핑 + 공시 대조
-    claims = await resolveClaims(drafts, degraded);
+    claims = await resolveClaims(drafts, degraded, checkedAtKst);
   } catch (e) {
     // 어떤 경우에도 500을 내지 않는다: 규칙층 결과로 응답
     pushUnique(degraded, 'internal_error');
