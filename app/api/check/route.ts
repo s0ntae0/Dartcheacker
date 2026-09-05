@@ -31,10 +31,12 @@ function rateLimited(ip: string): boolean {
   return false;
 }
 
+const LOOPBACK = new Set(['127.0.0.1', '::1', '::ffff:127.0.0.1', 'localhost']);
 function clientIp(req: Request): string | null {
   const xff = req.headers.get('x-forwarded-for');
-  if (xff) return xff.split(',')[0].trim();
-  return req.headers.get('x-real-ip') ?? null; // 로컬 개발(헤더 없음)은 제한 안 함
+  const ip = (xff ? xff.split(',')[0] : req.headers.get('x-real-ip') ?? '').trim();
+  if (!ip || LOOPBACK.has(ip)) return null; // 로컬 개발(loopback)은 제한 안 함 — eval.mjs 실행용
+  return ip;
 }
 
 function llmKind(e: unknown): string {

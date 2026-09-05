@@ -6,7 +6,10 @@ const CLOVA_URL = 'https://clovastudio.stream.ntruss.com/v3/chat-completions/';
 export const LLM_MODEL = process.env.CLOVA_MODEL?.trim() || 'HCX-005';
 const TIMEOUT_MS = 12_000;
 
-export type LlmErrorKind = 'llm_timeout' | 'llm_error' | 'llm_parse';
+export type LlmErrorKind = 'llm_timeout' | 'llm_error' | 'llm_parse' | 'llm_rate_limit';
+const RETRY_MAX = 2;
+const RETRY_BASE_MS = 1500;
+const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 export class LlmError extends Error {
   constructor(public kind: LlmErrorKind, message: string) {
     super(message);
@@ -16,43 +19,62 @@ export class LlmError extends Error {
 async function chat(system: string, user: string, maxTokens: number): Promise<string> {
   const key = process.env.CLOVA_API_KEY?.trim();
   if (!key) throw new LlmError('llm_error', 'CLOVA_API_KEY 미설정');
-  const ctrl = new AbortController();
-  const timer = setTimeout(() => ctrl.abort(), TIMEOUT_MS);
-  try {
-    const res = await fetch(CLOVA_URL + LLM_MODEL, {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${key}`,
-        'Content-Type': 'application/json',
-        Accept: 'application/json',
-        'X-NCP-CLOVASTUDIO-REQUEST-ID': crypto.randomUUID(),
-      },
-      body: JSON.stringify({
-        messages: [
-          { role: 'system', content: system },
-          { role: 'user', content: user },
-        ],
-        maxTokens,
-        temperature: 0.1,
-        topP: 0.8,
-        repetitionPenalty: 1.05,
-      }),
-      signal: ctrl.signal,
-    });
-    const json = await res.json().catch(() => null);
-    if (!res.ok || json?.status?.code !== '20000') {
-      throw new LlmError('llm_error', `CLOVA ${res.status} ${json?.status?.message ?? json?.error?.message ?? ''}`.trim());
+  const deadline = Date.now() + TIMEOUT_MS;
+  let lastErr: LlmError | null = null;
+  for (let attempt = 0; attempt <= RETRY_MAX; attempt++) {
+    const remain = deadline - Date.now();
+    if (remain < 1500) break;
+    const ctrl = new AbortController();
+    const timer = setTimeout(() => ctrl.abort(), remain);
+    try {
+      const res = await fetch(CLOVA_URL + LLM_MODEL, {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${key}`,
+          'Content-Type': 'application/json',
+          Accept: 'application/json',
+          'X-NCP-CLOVASTUDIO-REQUEST-ID': crypto.randomUUID(),
+        },
+        body: JSON.stringify({
+          messages: [
+            { role: 'system', content: system },
+            { role: 'user', content: user },
+          ],
+          maxTokens,
+          temperature: 0.1,
+          topP: 0.8,
+          repetitionPenalty: 1.05,
+        }),
+        signal: ctrl.signal,
+      });
+      const json = await res.json().catch(() => null);
+      if (res.status === 429 || res.status >= 500) {
+        // CLOVA 분당 호출 제한·일시 장애 → Retry-After(초) 또는 지수 백오프 후 재시도
+        const ra = Number(res.headers.get('retry-after'));
+        const wait = Number.isFinite(ra) && ra > 0 ? ra * 1000 : RETRY_BASE_MS * 2 ** attempt;
+        lastErr = new LlmError(res.status === 429 ? 'llm_rate_limit' : 'llm_error', `CLOVA ${res.status} ${json?.status?.message ?? json?.error?.message ?? ''}`.trim());
+        if (attempt < RETRY_MAX && Date.now() + wait < deadline - 1500) {
+          clearTimeout(timer);
+          await sleep(wait);
+          continue;
+        }
+        throw lastErr;
+      }
+      if (!res.ok || json?.status?.code !== '20000') {
+        throw new LlmError('llm_error', `CLOVA ${res.status} ${json?.status?.message ?? json?.error?.message ?? ''}`.trim());
+      }
+      const content = json?.result?.message?.content;
+      if (typeof content !== 'string') throw new LlmError('llm_error', 'content 없음');
+      return content;
+    } catch (e) {
+      if (e instanceof LlmError) throw e;
+      if ((e as Error).name === 'AbortError') throw new LlmError('llm_timeout', `LLM ${TIMEOUT_MS}ms 초과`);
+      throw new LlmError('llm_error', String((e as Error).message ?? e));
+    } finally {
+      clearTimeout(timer);
     }
-    const content = json?.result?.message?.content;
-    if (typeof content !== 'string') throw new LlmError('llm_error', 'content 없음');
-    return content;
-  } catch (e) {
-    if (e instanceof LlmError) throw e;
-    if ((e as Error).name === 'AbortError') throw new LlmError('llm_timeout', `LLM ${TIMEOUT_MS}ms 초과`);
-    throw new LlmError('llm_error', String((e as Error).message ?? e));
-  } finally {
-    clearTimeout(timer);
   }
+  throw lastErr ?? new LlmError('llm_timeout', `LLM ${TIMEOUT_MS}ms 초과`);
 }
 
 /** 응답에서 첫 `{` ~ 마지막 `}` 추출 → JSON.parse */

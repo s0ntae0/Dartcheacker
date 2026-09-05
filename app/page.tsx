@@ -28,6 +28,7 @@ const DEGRADED_LABEL: Record<string, string> = {
   llm_timeout: 'AI 판정 지연(규칙 기반 결과만 표시)',
   llm_parse: 'AI 판정 결과 해석 실패(규칙 기반 결과만 표시)',
   llm_error: 'AI 판정 오류(규칙 기반 결과만 표시)',
+  llm_rate_limit: 'AI 판정 요청 한도 초과(규칙 기반 결과만 표시)',
   dart_unavailable: 'DART 공시 조회 지연',
   corp_lookup: '기업 검색 지연',
 };

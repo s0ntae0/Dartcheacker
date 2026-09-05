@@ -7,7 +7,7 @@ const opt = (name, def) => { const i = args.indexOf(name); return i >= 0 ? args[
 const BASE = opt('--url', process.env.EVAL_URL ?? 'http://localhost:3000');
 const ONLY = opt('--only', '')?.split(',').filter(Boolean) ?? [];
 const SAVE = !args.includes('--no-save');
-const GAP_MS = 300;
+const GAP_MS = Number(opt('--gap', process.env.EVAL_GAP_MS ?? '300')); // LLM 분당 한도에 걸리면 --gap 2000 등으로 늘린다
 
 const gold = JSON.parse(readFileSync(new URL('../data/gold_samples.json', import.meta.url), 'utf8'));
 const samples = gold.samples.filter((s) => ONLY.length === 0 || ONLY.includes(s.id));
@@ -18,11 +18,15 @@ const rows = [];
 for (const s of samples) {
   const t0 = Date.now();
   let res, body;
-  try {
-    res = await fetch(`${BASE}/api/check`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ text: s.text }) });
-    body = await res.json();
-  } catch (e) {
-    body = { error: String(e) };
+  for (let attempt = 0; attempt < 3; attempt++) {
+    try {
+      res = await fetch(`${BASE}/api/check`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ text: s.text }) });
+      body = await res.json();
+    } catch (e) {
+      body = { error: String(e) };
+    }
+    if (res?.status !== 429) break;
+    await sleep(7000); // rate limit(분당 10회)이면 잠시 대기 후 재시도
   }
   const ms = Date.now() - t0;
   const ok = res?.ok && body?.risk;
