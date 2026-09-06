@@ -167,3 +167,9 @@ button.brand{width:100%;text-align:left;cursor:pointer;color:var(--ink)} button.
 .pat .legal{margin:6px 0 0}
 .pat .src{margin-top:6px;font-size:12.5px;color:var(--ink-3);line-height:1.7} .pat .src a{color:var(--ink-2);border-bottom:1px solid var(--line)}
 .pat .nx{font-size:12.5px;color:var(--mid);margin:6px 0 0;line-height:1.6}
+/* 발신자 소속 확인 카드 */
+.org{display:flex;flex-wrap:wrap;align-items:center;gap:6px 14px;padding:10px 0;border-top:1px solid var(--line-2)} .org:first-of-type{border-top:0;padding-top:0}
+.org .nm{font-weight:600;font-size:14px;padding:0;color:var(--ink)} .org .nm:hover{color:var(--ink-2)}
+.org .ok{font-size:11.5px;color:var(--lo)}
+.org .lnk{font-size:12px;color:var(--ink-2);border-bottom:1px solid var(--line)}
+.card .foot{font-size:11.5px;color:var(--ink-4);margin:12px 0 0;line-height:1.6}

@@ -19,9 +19,9 @@
 | 항목 | 내용 |
 |---|---|
 | 입력 | 원문 |
-| 출력(JSON) | `claims[{text, corp_name, type, amount_raw, date_hint}]` (최대 5개). type 12종: supply_contract, capital_increase, convertible_bond, earnings, major_holder, ceo_change, merger, listing, executive_rumor, price_forecast, insider_claim, other |
+| 출력(JSON) | `claims[{text, corp_name, type, amount_raw, date_hint}]` (최대 5개). type 12종: supply_contract, capital_increase, convertible_bond, earnings, major_holder, ceo_change, merger, listing, executive_rumor, price_forecast, insider_claim, other. `sender_orgs[]`: 발신자가 자칭하는 소속 금융회사·자문사·기관의 고유명(최대 3개, 종목 기업명·"증권사" 같은 일반 표현 제외) |
 | 규칙 | 기업명이 명시된 주장만. 발신자 소속 회사(증권사 사칭 등)는 제외. 기업명은 원문 표기 그대로(별칭 해석은 서버) |
-| 후처리(서버) | 금액 정규화(억→1e8, 조→1e12, 만→1e4; LLM이 빠뜨리면 원문에서 재추출), 기업 매핑(pg_trgm), 유형별 OpenDART 대조 |
+| 후처리(서버) | 금액 정규화(억→1e8, 조→1e12, 만→1e4; LLM이 빠뜨리면 원문에서 재추출), 기업 매핑(pg_trgm), 유형별 OpenDART 대조. `sender_orgs`는 이름 정규화(공백·(주) 제거) 후 중복·일반명사·종목 기업명과 겹치는 것을 제외하고 파인 조회 링크 2개(제도권 금융회사 조회 / 유사투자자문업자 신고현황)를 붙인다. **등록 여부는 판정하지 않는다** |
 
 LLM은 **판정의 최종 권한을 갖지 않는다.** 위험 등급은 규칙 기반 점수 규칙(`patterns.json > scoring`)이 결정하고, 공시 대조 판정은 OpenDART 응답과의 수치 비교(±15%, 실적 ±10%)로 결정한다.
 
@@ -34,7 +34,7 @@ LLM은 **판정의 최종 권한을 갖지 않는다.** 위험 등급은 규칙 
 | 참조 | 상장사 목록 `corps` (약 4,000건: corp_code·corp_name·stock_code) | OpenDART corpCode.xml (`scripts/seed-corps.mjs`) |
 | 참조 | 공시 목록 캐시 `disclosures` (최근 90일, 10분 TTL) | OpenDART `list.json` |
 | 참조 | 유상증자·전환사채 결정, 실적, 공시 원문 | OpenDART `piicDecsn.json`, `cvbdIsDecsn.json`, `fnlttSinglAcnt.json`, `document.xml` (원문은 공급계약 계약금액·매출액 대비·계약상대 추출) |
-| 출력 | `CheckResponse`: 위험 점수·등급·근거 문구·매치 패턴(구절·법적 근거·출처)·정상 신호·진행 단계·정상 가능성 검토, 주장별 판정·설명·DART 링크·공시 의무 안내, 행동 요령·신고처, 확인 시각, 면책, 부분 장애 사유 | `lib/types.ts` |
+| 출력 | `CheckResponse`: 위험 점수·등급·근거 문구·매치 패턴(구절·법적 근거·출처)·정상 신호·진행 단계·정상 가능성 검토, 주장별 판정·설명·DART 링크·공시 의무 안내, 발신자 자칭 소속(`sender_orgs`, 파인 조회 링크), 행동 요령·신고처, 확인 시각, 면책, 부분 장애 사유 | `lib/types.ts` |
 | 평가 | `data/gold_samples.json` 53건(사기 30·정상 20·실제 상장사 사본 3) → `docs/eval_result.md` (사기 ≥ medium 31/32, 정상 low 20/21, 패턴 recall 71%, 평균 3초) | 실제 보도 문구를 변형해 작성, 기업명은 가상(실제 상장사와 겹치지 않음을 `find_corp`로 확인) |
 
 ## 3. 개인정보·로그

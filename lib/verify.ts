@@ -1,10 +1,10 @@
-import { findCorp } from './corp';
+import { findCorp, normalizeCorpName } from './corp';
 import {
   fetchCapitalIncreases, fetchConvertibleBonds, fetchEarnings, fetchSupplyContract,
   isCorrected, listDisclosures, viewerUrl, type Disclosure,
 } from './dart';
 import type { ClaimDraft } from './llm';
-import type { Claim, ClaimType } from './types';
+import type { Claim, ClaimType, SenderOrg } from './types';
 
 const TOL = 0.15;
 const TOL_EARNINGS = 0.1;
@@ -318,4 +318,26 @@ export async function resolveClaims(drafts: ClaimDraft[], degraded: string[], ch
       return claim;
     }),
   );
+}
+
+// ---------- 발신자 자칭 소속 → 파인 조회 링크 ----------
+export const FINE_FIN_URL = 'https://fine.fss.or.kr/fine/fncco/systemFncCo/list.do?menuNo=900038';
+export const FINE_ADVISOR_URL = 'https://fine.fss.or.kr/fine/fncco/invsmCnsut/list.do?menuNo=900520';
+const GENERIC_ORG = /^(증권사|증권|자산운용사?|운용사|투자자문사?|자문사|캐피탈|은행|기관|정부|애널리스트|리서치팀?|팀장|본부장|대표)$/;
+
+/** 이름 정규화(공백·(주) 제거) → 중복·일반명사·종목 기업명(claims[].corp)과 같은 것 제외. 등록 여부는 판정하지 않는다 */
+export function buildSenderOrgs(names: string[], claims: Claim[]): SenderOrg[] {
+  const key = (v: string) => normalizeCorpName(v).replace(/\s+/g, '');
+  const corpKeys = new Set(claims.map((c) => (c.corp ? key(c.corp.corp_name) : '')).filter(Boolean));
+  const seen = new Set<string>();
+  const out: SenderOrg[] = [];
+  for (const raw of names) {
+    const name = normalizeCorpName(raw);
+    const k = key(raw);
+    if (k.length < 2 || seen.has(k) || corpKeys.has(k) || GENERIC_ORG.test(k)) continue;
+    seen.add(k);
+    out.push({ name, fine_fin: FINE_FIN_URL, fine_advisor: FINE_ADVISOR_URL });
+    if (out.length >= 3) break;
+  }
+  return out;
 }

@@ -28,6 +28,13 @@ export interface Claim {
   note?: string;         // 공시 의무·기한 안내 등
 }
 
+/** 발신자가 자칭하는 소속(증권사·자문사·기관). 등록 여부는 판정하지 않고 파인 조회 링크만 제공 */
+export interface SenderOrg {
+  name: string;
+  fine_fin: string;      // 파인 제도권 금융회사 조회
+  fine_advisor: string;  // 파인 유사투자자문업자 신고현황
+}
+
 export interface CheckResponse {
   risk: {
     score: number;                 // 0..1
@@ -39,6 +46,7 @@ export interface CheckResponse {
     reflection?: string;           // LLM이 쓴 '정상일 가능성' 한 줄
   };
   claims: Claim[];
+  sender_orgs: SenderOrg[];
   actions: string[];               // action_guide[level]
   contacts: { name: string; value: string; url: string }[];
   checked_at: string;              // ISO, KST 표시용

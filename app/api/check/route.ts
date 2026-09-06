@@ -1,11 +1,11 @@
 import { createHash } from 'node:crypto';
 import { after } from 'next/server';
-import type { CheckResponse, Claim, RiskLevel } from '@/lib/types';
+import type { CheckResponse, Claim, RiskLevel, SenderOrg } from '@/lib/types';
 import { ACTION_GUIDE, VERDICT_COPY, ruleMatch } from '@/lib/patterns';
 import { computeScore, type LlmPatternResult } from '@/lib/scoring';
 import { LLM_MODEL, LlmError, extractClaims, judgePatterns, type ClaimDraft } from '@/lib/llm';
 import { getSupabase } from '@/lib/supabase';
-import { resolveClaims } from '@/lib/verify';
+import { buildSenderOrgs, resolveClaims } from '@/lib/verify';
 import { fmtKst } from '@/lib/dart';
 
 export const maxDuration = 60;
@@ -77,6 +77,8 @@ export async function POST(req: Request) {
   let llm: LlmPatternResult | null = null;
   let drafts: ClaimDraft[] = [];
   let claims: Claim[] = [];
+  let senderNames: string[] = [];
+  let sender_orgs: SenderOrg[] = [];
   let scored = computeScore(rule, null);
 
   try {
@@ -90,7 +92,10 @@ export async function POST(req: Request) {
       pushUnique(degraded, llmKind(pj.reason));
       errors.push(`judge: ${String((pj.reason as Error)?.message ?? pj.reason)}`);
     }
-    if (cj.status === 'fulfilled') drafts = cj.value;
+    if (cj.status === 'fulfilled') {
+      drafts = cj.value.claims;
+      senderNames = cj.value.sender_orgs;
+    }
     else {
       pushUnique(degraded, llmKind(cj.reason));
       errors.push(`extract: ${String((cj.reason as Error)?.message ?? cj.reason)}`);
@@ -101,6 +106,7 @@ export async function POST(req: Request) {
 
     // 4~5. 기업 매핑 + 공시 대조
     claims = await resolveClaims(drafts, degraded, checkedAtKst);
+    sender_orgs = buildSenderOrgs(senderNames, claims);
   } catch (e) {
     // 어떤 경우에도 500을 내지 않는다: 규칙층 결과로 응답
     pushUnique(degraded, 'internal_error');
@@ -122,6 +128,7 @@ export async function POST(req: Request) {
       reflection: llm?.reflection,
     },
     claims,
+    sender_orgs,
     actions: ACTION_GUIDE[guideLevel],
     contacts: ACTION_GUIDE.contacts,
     checked_at: new Date().toISOString(),

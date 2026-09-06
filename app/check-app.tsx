@@ -84,6 +84,7 @@ export default function CheckApp({ contacts, disclaimer, weights }: { contacts: 
   const [drawer, setDrawer] = useState(false);
   const [stats, setStats] = useState<Stats | null>(null);
   const [copied, setCopied] = useState(false);
+  const [copiedOrg, setCopiedOrg] = useState<string | null>(null);
   const [openLegal, setOpenLegal] = useState<Record<string, boolean>>({});
   const loadingRef = useRef(false);
   const homeTa = useRef<HTMLTextAreaElement>(null);
@@ -130,6 +131,11 @@ export default function CheckApp({ contacts, disclaimer, weights }: { contacts: 
     const id = setTimeout(() => setCopied(false), 1500);
     return () => clearTimeout(id);
   }, [copied]);
+  useEffect(() => {
+    if (!copiedOrg) return;
+    const id = setTimeout(() => setCopiedOrg(null), 1500);
+    return () => clearTimeout(id);
+  }, [copiedOrg]);
 
   const runCheck = useCallback(
     async (input: string) => {
@@ -219,8 +225,18 @@ export default function CheckApp({ contacts, disclaimer, weights }: { contacts: 
         lines.push(`공시 대조: ${c.corp ? `${c.corp.corp_name} ` : ''}${short} — ${(VD[c.verdict] ?? VD.unconfirmed).name} (${when.date} ${when.time} KST 기준)`);
       }
     } else lines.push(`공시 대조: 기업명이 포함된 주장 없음 (${when.date} ${when.time} KST 기준)`);
+    const orgs = r.sender_orgs ?? [];
+    if (orgs.length) lines.push(`발신자 자칭 소속: ${orgs.map((o) => o.name).join(', ')} — 파인에서 등록 여부 확인 필요.`);
     lines.push(`자세히: ${SITE_URL}`);
     return lines.join('\n');
+  }
+  async function copyOrg(name: string) {
+    try {
+      await navigator.clipboard.writeText(name);
+      setCopiedOrg(name);
+    } catch {
+      window.prompt('소속명을 복사하세요', name);
+    }
   }
   async function copyResult() {
     if (!result) return;
@@ -248,6 +264,7 @@ export default function CheckApp({ contacts, disclaimer, weights }: { contacts: 
   const stageHit = result?.risk.stage ? STAGE_MARKS.map((m) => result.risk.stage!.includes(m)) : [];
   const stageLast = stageHit.lastIndexOf(true);
   const nextHint = result?.risk.patterns.find((p) => p.next_step_hint)?.next_step_hint ?? null;
+  const senderOrgs = result?.sender_orgs ?? []; // 이전 이력(구 스키마)에는 없을 수 있음
   const reflection = result?.risk.reflection ?? null;
   const when = result ? kst(result.checked_at) : null;
   return (
@@ -384,6 +401,24 @@ export default function CheckApp({ contacts, disclaimer, weights }: { contacts: 
                       </div>
                     );
                   })}
+                </div>
+              )}
+
+              {/* 발신자 소속 확인 */}
+              {senderOrgs.length > 0 && (
+                <div className="card">
+                  <h2>발신자 소속 확인 <span>파인(금융소비자 정보포털)에서 직접 조회</span></h2>
+                  {senderOrgs.map((o) => (
+                    <div className="org" key={o.name}>
+                      <button type="button" className="nm" onClick={() => void copyOrg(o.name)} aria-label={`${o.name} 소속명 복사`}>
+                        {o.name}
+                      </button>
+                      {copiedOrg === o.name && <span className="ok" role="status">복사됨</span>}
+                      <a className="lnk" href={o.fine_fin} target="_blank" rel="noopener noreferrer" aria-label={`제도권 금융회사 조회 (새 창)`}>제도권 금융회사 조회 ↗</a>
+                      <a className="lnk" href={o.fine_advisor} target="_blank" rel="noopener noreferrer" aria-label={`유사투자자문업자 조회 (새 창)`}>유사투자자문업자 조회 ↗</a>
+                    </div>
+                  ))}
+                  <p className="foot">파인에서 검색되지 않으면 정식 금융회사가 아닐 수 있습니다. 상호 표기 차이로 검색이 안 될 수도 있으니 정확한 상호로 다시 확인하세요.</p>
                 </div>
               )}
 

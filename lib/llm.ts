@@ -176,7 +176,8 @@ const CLAIM_TYPES: ClaimType[] = [
 const EXTRACT_SYSTEM = `당신은 주식 메시지에서 "특정 기업에 대한 사실 주장"을 추출한다. 반드시 아래 스키마의 JSON 하나만 출력한다. 설명·마크다운·코드펜스는 출력하지 않는다.
 
 [출력 스키마]
-{ "claims": [ { "text": "주장이 담긴 원문 구절", "corp_name": "기업명(원문 표기 그대로)", "type": "supply_contract", "amount_raw": "1,200억", "date_hint": "내일" } ] }
+{ "claims": [ { "text": "주장이 담긴 원문 구절", "corp_name": "기업명(원문 표기 그대로)", "type": "supply_contract", "amount_raw": "1,200억", "date_hint": "내일" } ],
+  "sender_orgs": ["원문에 적힌 발신자 소속 고유명"] }
 
 [type 매핑]
 - 공급/수주/납품 계약 → supply_contract
@@ -198,11 +199,20 @@ const EXTRACT_SYSTEM = `당신은 주식 메시지에서 "특정 기업에 대�
 3. amount_raw는 주장에 금액이 있을 때만 원문 표기 그대로(예: "1,180억", "500억", "1조 2천억"). 가입비·수수료 같은 기업 무관 금액은 넣지 않는다.
 4. date_hint는 시점 표현이 있을 때만 원문 그대로(예: "어제", "9/3", "다음주").
 5. 같은 기업의 같은 사건은 하나로 합친다. 최대 5개.
-6. 주장이 없으면 {"claims": []}.`;
+6. 주장이 없으면 "claims": [].
+7. sender_orgs: 발신자가 자칭하는 소속 금융회사·자문사·기관의 고유명(증권사·자산운용·투자자문·캐피탈·금감원 등). 원문에 문자 그대로 적힌 이름만 넣는다. 종목으로 언급된 기업명은 넣지 않는다. "증권사", "애널리스트", "정부"처럼 고유명이 아닌 일반 표현은 넣지 않는다. 최대 3개, 없으면 [].`;
 
-export async function extractClaims(text: string): Promise<ClaimDraft[]> {
+export interface ExtractResult {
+  claims: ClaimDraft[];
+  sender_orgs: string[];
+}
+
+export async function extractClaims(text: string): Promise<ExtractResult> {
   const raw = await chat(EXTRACT_SYSTEM, `[원문]\n${text}\n\nJSON만 출력:`, 800);
   const j = parseJson(raw);
+  // 원문에 실제로 등장하는 이름만 (환각 차단 — span과 같은 원칙). 공백 차이는 무시
+  const flat = text.replace(/\s+/g, '');
+  const sender_orgs = [...new Set(arr(j.sender_orgs).map(str).filter((x) => x.length >= 2 && x.length <= 40 && flat.includes(x.replace(/\s+/g, ''))))].slice(0, 3);
   const out: ClaimDraft[] = [];
   for (const c of arr(j.claims)) {
     const o = (c ?? {}) as Record<string, unknown>;
@@ -219,5 +229,5 @@ export async function extractClaims(text: string): Promise<ClaimDraft[]> {
     });
     if (out.length >= 5) break;
   }
-  return out;
+  return { claims: out, sender_orgs };
 }
