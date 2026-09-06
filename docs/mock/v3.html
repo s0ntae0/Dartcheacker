@@ -1,0 +1,242 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>찌라시체크</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
+<style>
+  :root{
+    --ink:#0B0F19; --ink-2:#3B4252; --ink-3:#6B7280; --ink-4:#9AA1AE;
+    --line:#E6E8EC; --line-2:#F0F1F4; --bg:#FFFFFF; --side:#F7F8FA; --bg-2:#F7F8FA;
+    --hi:#C8102E; --hi-bg:#FFF1F2; --mid:#B45309; --mid-bg:#FFF7E6; --lo:#15803D; --lo-bg:#EEF9F0; --unk:#6B7280; --unk-bg:#F1F2F4;
+    --r:12px; --sidebar:260px;
+    --sans:"Pretendard Variable",Pretendard,-apple-system,"Apple SD Gothic Neo","Noto Sans KR",system-ui,sans-serif;
+  }
+  *{box-sizing:border-box} html,body{margin:0;height:100%}
+  body{font-family:var(--sans);color:var(--ink);background:var(--bg);font-size:14px;line-height:1.55;-webkit-font-smoothing:antialiased;word-break:keep-all;overflow-wrap:anywhere;font-feature-settings:"tnum" 1}
+  a{color:inherit;text-decoration:none} button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
+  h1,h2,h3{margin:0;font-weight:600;letter-spacing:-.01em}
+  .num{font-variant-numeric:tabular-nums}
+
+  .app{display:grid;grid-template-columns:var(--sidebar) 1fr;height:100vh}
+
+  /* sidebar */
+  .side{background:var(--side);border-right:1px solid var(--line);display:flex;flex-direction:column;padding:14px 12px;overflow:hidden}
+  .brand{display:flex;align-items:center;gap:8px;font-weight:700;font-size:15px;padding:6px 8px 12px}
+  .brand svg{width:18px;height:18px}
+  .newbtn{display:flex;align-items:center;gap:8px;height:36px;padding:0 10px;border:1px solid var(--line);background:#fff;border-radius:8px;font-size:13px;font-weight:500;color:var(--ink)}
+  .newbtn:hover{border-color:var(--ink-4)}
+  .grp{font-size:11px;font-weight:600;color:var(--ink-4);padding:18px 8px 6px;letter-spacing:.02em}
+  .hist{flex:1;overflow:auto;min-height:0}
+  .hitem{display:flex;align-items:center;gap:8px;padding:7px 8px;border-radius:7px;font-size:13px;color:var(--ink-2);cursor:pointer}
+  .hitem:hover{background:#EEF0F3} .hitem.on{background:#E8EAEE;color:var(--ink)}
+  .hitem .t{flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .hitem .d{width:8px;height:8px;border-radius:50%;flex:none}
+  .d.hi{background:var(--hi)} .d.mid{background:var(--mid)} .d.lo{background:var(--lo)} .d.unk{background:var(--ink-4)}
+  .hitem time{font-size:11px;color:var(--ink-4)}
+  .links{border-top:1px solid var(--line);padding-top:4px}
+  .link{display:flex;align-items:center;justify-content:space-between;padding:6px 8px;border-radius:7px;font-size:12.5px;color:var(--ink-2)}
+  .link:hover{background:#EEF0F3;color:var(--ink)}
+  .link b{font-weight:600;font-variant-numeric:tabular-nums} .link span.ext{color:var(--ink-4);font-size:11px}
+  .sstat{font-size:11px;color:var(--ink-4);padding:12px 8px 2px}
+  .sstat b{color:var(--ink-3);font-weight:600}
+
+  /* main */
+  .main{position:relative;overflow:auto;display:flex;flex-direction:column}
+  .col{width:100%;max-width:760px;margin:0 auto;padding:0 24px}
+
+  /* empty state */
+  .home{flex:1;display:flex;flex-direction:column;justify-content:center;padding-bottom:8vh}
+  .home h1{font-size:26px;font-weight:600;letter-spacing:-.02em;text-align:center;margin-bottom:22px}
+  .box{border:1px solid var(--line);border-radius:16px;background:#fff;box-shadow:0 1px 2px rgba(11,15,25,.04),0 8px 28px rgba(11,15,25,.05);padding:14px 14px 10px}
+  .box:focus-within{border-color:var(--ink-4)}
+  .box textarea{width:100%;min-height:112px;border:0;outline:0;resize:none;font:inherit;font-size:15px;line-height:1.6;color:var(--ink);background:transparent}
+  .box textarea::placeholder{color:var(--ink-4)}
+  .boxf{display:flex;align-items:center;justify-content:space-between;margin-top:6px}
+  .boxf .c{font-size:12px;color:var(--ink-4)}
+  .send{height:36px;padding:0 14px;border-radius:9px;background:var(--ink);color:#fff;font-weight:600;font-size:13.5px;display:inline-flex;align-items:center;gap:8px}
+  .send:hover{background:#1c2130}
+  .send kbd{font:inherit;font-size:10.5px;color:rgba(255,255,255,.55);border:1px solid rgba(255,255,255,.22);border-radius:4px;padding:0 4px;line-height:15px}
+  .chips{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-top:16px}
+  .chip{border:1px solid var(--line);border-radius:999px;padding:6px 12px;font-size:12.5px;color:var(--ink-2);background:#fff}
+  .chip:hover{border-color:var(--ink-4);color:var(--ink)}
+  .chip span{color:var(--ink-4);margin-right:6px}
+  .basis{text-align:center;font-size:11.5px;color:var(--ink-4);margin-top:22px;line-height:1.7}
+  .basis b{color:var(--ink-3);font-weight:500}
+
+  /* result state */
+  .res{flex:1;padding:28px 0 140px}
+  .card{border:1px solid var(--line);border-radius:var(--r);background:#fff;padding:20px 22px;margin-bottom:14px}
+  .card h2{font-size:13px;color:var(--ink-3);font-weight:600;margin-bottom:12px;display:flex;justify-content:space-between;align-items:baseline}
+  .card h2 span{font-weight:400;font-size:12px;color:var(--ink-4)}
+  .top{display:flex;justify-content:space-between;gap:20px;align-items:flex-start}
+  .score{display:flex;align-items:baseline;gap:12px}
+  .score .n{font-size:52px;font-weight:700;letter-spacing:-.04em;line-height:1}
+  .score .n.hi{color:var(--hi)}
+  .tag{display:inline-block;font-size:12px;font-weight:600;padding:2px 7px;border-radius:5px;line-height:18px}
+  .tag.hi{color:var(--hi);background:var(--hi-bg)} .tag.mid{color:var(--mid);background:var(--mid-bg)} .tag.lo{color:var(--lo);background:var(--lo-bg)} .tag.unk{color:var(--unk);background:var(--unk-bg)}
+  .headline{font-size:15px;font-weight:500;margin-top:10px;max-width:460px;text-wrap:balance}
+  .meter{margin-top:14px;display:flex;gap:3px;width:300px}
+  .meter i{height:4px;flex:1;background:var(--line);border-radius:2px} .meter i.on{background:var(--hi)}
+  .meta{text-align:right;font-size:12px;color:var(--ink-3);white-space:nowrap;line-height:1.7}
+  .btn{display:inline-flex;align-items:center;height:30px;padding:0 10px;border:1px solid var(--line);border-radius:7px;font-size:12px;color:var(--ink-2);background:#fff;margin-top:6px}
+  .btn:hover{border-color:var(--ink-4)}
+  .stage{margin-top:16px;display:flex;align-items:center;gap:10px;font-size:12px;color:var(--ink-3)}
+  .stage .bar{display:flex;gap:3px;flex:1;max-width:300px} .stage .bar i{height:4px;flex:1;background:var(--line);border-radius:2px} .stage .bar i.on{background:var(--ink-3)}
+
+  .prow{display:grid;grid-template-columns:180px 1fr;gap:18px;padding:12px 0;border-top:1px solid var(--line-2)}
+  .prow:first-of-type{border-top:0;padding-top:0}
+  .pn{font-weight:600;font-size:13.5px} .pc{font-size:11.5px;color:var(--ink-4);margin-top:2px}
+  .q{font-size:13.5px;color:var(--ink-2);padding-left:10px;border-left:2px solid var(--hi);margin:0 0 5px;line-height:1.5} .q.mid{border-color:var(--mid)}
+  .more{font-size:12px;color:var(--ink-3)} .more:hover{color:var(--ink)}
+
+  .orig{font-size:14px;line-height:1.85;color:var(--ink-2);background:var(--bg-2);padding:14px 16px;border-radius:9px;white-space:pre-wrap}
+  mark{background:rgba(200,16,46,.14);color:var(--ink);padding:1px 2px;border-radius:2px;box-decoration-break:clone} mark.mid{background:rgba(180,83,9,.16)}
+
+  table{width:100%;border-collapse:collapse;font-size:13.5px}
+  th{text-align:left;font-size:11.5px;font-weight:600;color:var(--ink-3);padding:0 0 8px;border-bottom:1px solid var(--line)}
+  td{padding:11px 12px 11px 0;border-bottom:1px solid var(--line-2);vertical-align:top}
+  td.v{white-space:nowrap;width:118px}
+  td .d{color:var(--ink-2);margin-top:3px;font-size:13px} td .n{color:var(--ink-4);font-size:12px;margin-top:4px;line-height:1.5}
+  td .lnk{font-size:12px;color:var(--ink-2);border-bottom:1px solid var(--line)}
+
+  .cols{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  .note{font-size:13px;color:var(--ink-2);line-height:1.6}
+  .note h3{font-size:12px;color:var(--ink-3);margin-bottom:6px;font-weight:600}
+  .note.next{border-left:3px solid var(--mid);padding-left:12px}
+
+  ol.todo{margin:0;padding:0;list-style:none;counter-reset:s}
+  ol.todo li{position:relative;padding:7px 0 7px 26px;border-bottom:1px solid var(--line-2);font-size:13.5px;counter-increment:s}
+  ol.todo li:last-child{border-bottom:0}
+  ol.todo li::before{content:counter(s);position:absolute;left:0;top:8px;width:16px;height:16px;border:1px solid var(--ink-4);border-radius:50%;font-size:10px;text-align:center;line-height:15px;color:var(--ink-3)}
+  .disc{font-size:11.5px;color:var(--ink-4);line-height:1.6;padding:4px 4px 0}
+
+  /* docked composer */
+  .dock{position:sticky;bottom:0;background:linear-gradient(to top,#fff 70%,rgba(255,255,255,0));padding:18px 0 18px}
+  .dock .box{padding:10px 10px 10px 14px;display:flex;align-items:flex-end;gap:10px;border-radius:14px}
+  .dock textarea{min-height:24px;max-height:120px;flex:1;font-size:14px}
+  .dock .send{height:34px}
+
+  @media (max-width: 900px){
+    .app{grid-template-columns:1fr} .side{display:none}
+    .mbar{display:flex;align-items:center;gap:10px;height:52px;padding:0 14px;border-bottom:1px solid var(--line);font-weight:700}
+    .mbar .hb{width:22px;height:16px;display:flex;flex-direction:column;justify-content:space-between} .mbar .hb i{height:2px;background:var(--ink);border-radius:1px}
+    .home h1{font-size:21px} .cols{grid-template-columns:1fr} .prow{grid-template-columns:1fr;gap:6px} .top{flex-direction:column} .meta{text-align:left}
+    .score .n{font-size:44px} .meter{width:100%}
+  }
+  .mbar{display:none}
+  @media (prefers-reduced-motion:no-preference){.meter i.on{animation:fill .5s ease both}@keyframes fill{from{transform:scaleX(0);transform-origin:left}}}
+  .toggle{position:fixed;right:14px;top:14px;font-size:11px;color:var(--ink-4);border:1px solid var(--line);background:#fff;padding:4px 8px;border-radius:5px;z-index:9}
+</style>
+</head>
+<body>
+<div class="app">
+  <aside class="side">
+    <div class="brand"><svg viewBox="0 0 18 18" fill="none"><rect x="1" y="1" width="16" height="16" rx="4" stroke="currentColor" stroke-width="1.6"/><path d="M5 9.2l2.6 2.6L13 6.6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>찌라시체크</div>
+    <button class="newbtn">＋ 새 검사</button>
+    <div class="hist">
+      <div class="grp">오늘</div>
+      <div class="hitem on"><i class="d hi"></i><span class="t">형님들 에코프로 내일 미국 대형 수주 발표 확정…</span><time>14:32</time></div>
+      <div class="hitem"><i class="d lo"></i><span class="t">서남 9/4 단일판매·공급계약체결 공시 났네요</span><time>14:20</time></div>
+      <div class="hitem"><i class="d mid"></i><span class="t">나노씨엠에스 어제 500억 3자배정 유증 공시 났죠?</span><time>13:58</time></div>
+      <div class="grp">이전</div>
+      <div class="hitem"><i class="d hi"></i><span class="t">수익금 2,400만원 출금하시려면 세금 22% 먼저</span><time>9/5</time></div>
+      <div class="hitem"><i class="d unk"></i><span class="t">청운바이오 회장 사임설 돌던데 회사 측은</span><time>9/5</time></div>
+      <div class="hitem"><i class="d lo"></i><span class="t">한빛전자 자사주 500억 취득 결정. 주주환원</span><time>9/4</time></div>
+    </div>
+    <div class="links">
+      <div class="grp" style="padding-top:12px">바로가기</div>
+      <a class="link" href="#"><span>파인 · 유사투자자문업자 신고현황</span><span class="ext">↗</span></a>
+      <a class="link" href="#"><span>파인 · 제도권 금융회사 조회</span><span class="ext">↗</span></a>
+      <a class="link" href="tel:1332"><span>금융감독원 불법금융신고</span><b>1332</b></a>
+      <a class="link" href="#"><span>경찰 사이버범죄 신고 ECRM</span><span class="ext">↗</span></a>
+      <a class="link" href="tel:118"><span>KISA 불법스팸대응센터</span><b>118</b></a>
+      <a class="link" href="#"><span>금융위 불공정거래 신고</span><span class="ext">↗</span></a>
+    </div>
+    <div class="sstat">오늘 <b class="num">217</b>건 검사 · 높음 <b class="num">62</b>건</div>
+  </aside>
+
+  <main class="main">
+    <div class="mbar"><div class="hb"><i></i><i></i><i></i></div>찌라시체크</div>
+
+    <!-- EMPTY -->
+    <div class="home col" id="home">
+      <h1>받은 메시지, 공시로 확인하세요</h1>
+      <div class="box">
+        <textarea placeholder="리딩방·오픈채팅·SNS에서 받은 주식 메시지를 그대로 붙여넣으세요"></textarea>
+        <div class="boxf"><span class="c num">0 / 4,000</span><button class="send">공시로 확인 <kbd>⌘↵</kbd></button></div>
+      </div>
+      <div class="chips">
+        <button class="chip"><span>예시</span>리딩방 메시지</button>
+        <button class="chip"><span>예시</span>공시 공유 글</button>
+        <button class="chip"><span>예시</span>유상증자 공지</button>
+      </div>
+      <div class="basis"><b>판정 기준</b> 금융감독원 소비자경보·금융위원회 보도자료에서 유형화한 사기 수법 16종 · 자본시장법 제174·176·178조<br><b>대조 데이터</b> OpenDART 최근 90일 공시 · 상장사 3,989개사 · 회원가입 없음</div>
+    </div>
+
+    <!-- RESULT -->
+    <div class="res col" id="res" style="display:none">
+      <div class="card">
+        <div class="top">
+          <div>
+            <div class="score"><div class="n hi num">92</div><span class="tag hi">높음</span></div>
+            <div class="headline">금융감독원 소비자경보에서 안내한 리딩방 수법과 일치하는 표현이 <b>4개</b> 있습니다.</div>
+            <div class="meter"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i></i></div>
+          </div>
+          <div class="meta">최종 확인 <span class="num">2026-09-06 14:32</span> KST<br><button class="btn">결과 요약 복사</button></div>
+        </div>
+        <div class="stage"><span>이 메시지가 해당하는 단계</span><div class="bar"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i></i><i></i><i></i><i></i></div><span>③ 신뢰 구축 → ④ 권위·기밀</span></div>
+      </div>
+
+      <div class="card">
+        <h2>일치한 수법 4 <span>원문 구절을 그대로 인용</span></h2>
+        <div class="prow"><div><div class="pn">미공개·내부 정보 주장</div><div class="pc">권위·독점성 · P01</div></div><div><p class="q">“아직 외부 공개 안 된 정보라 여기서만 말씀드려요”</p><button class="more">법적 근거와 출처 ↓</button></div></div>
+        <div class="prow"><div><div class="pn">긴급·희소성 압박</div><div class="pc">긴급·희소 · P03</div></div><div><p class="q mid">“오늘 종가 전에 무조건 들어가세요”</p><button class="more">법적 근거와 출처 ↓</button></div></div>
+        <div class="prow"><div><div class="pn">외부 채널 이동 유도</div><div class="pc">채널 이동·격리 · P04</div></div><div><p class="q">“자세한 건 텔레방에서 https://t.me/xxxx”</p><button class="more">법적 근거와 출처 ↓</button></div></div>
+        <div class="prow"><div><div class="pn">확정적 가격 예측</div><div class="pc">수익 주장 · P16</div></div><div><p class="q mid">“내일 미국 대형 수주 발표 확정입니다”</p><button class="more">법적 근거와 출처 ↓</button></div></div>
+      </div>
+
+      <div class="card">
+        <h2>원문 <span>걸린 구절 표시</span></h2>
+        <div class="orig">형님들 에코프로 <mark class="mid">내일 미국 대형 수주 발표 확정입니다</mark>. <mark>아직 외부 공개 안 된 정보라 여기서만 말씀드려요</mark>. <mark class="mid">오늘 종가 전에 무조건 들어가세요</mark>. <mark>자세한 건 텔레방에서 https://t.me/xxxx</mark></div>
+      </div>
+
+      <div class="card">
+        <h2>메시지 속 주장, 공시로 확인 <span>OpenDART 최근 90일</span></h2>
+        <table>
+          <thead><tr><th>주장</th><th>판정</th><th>근거</th></tr></thead>
+          <tbody>
+            <tr><td>“에코프로 내일 미국 대형 수주 발표 확정”<div class="d">에코프로 (086520) · 공급계약</div></td><td class="v"><span class="tag unk">공시 근거 미확인</span></td><td><div class="d">14:32 기준 최근 90일 공시 41건 중 단일판매·공급계약 없음</div><div class="n">사실이라면 사유 발생 익일까지 공시 의무. 향후 공시로 상태가 바뀔 수 있습니다.</div></td></tr>
+            <tr><td>“오늘 종가 전에 무조건 들어가세요”<div class="d">가격 예측</div></td><td class="v"><span class="tag unk">검증 범위 밖</span></td><td><div class="d">가격 예측은 공시로 확인할 수 없는 주장입니다</div></td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="card">
+        <div class="cols">
+          <div class="note"><h3>반대로 생각해보면</h3>정보 공유 글일 가능성: 낮음 — 미공개 정보 주장과 매수 권유가 직접 포함돼 있고 출처 링크가 텔레그램뿐입니다.</div>
+          <div class="note next"><h3>이 다음에 올 수 있는 것</h3>폐쇄방 초대 후 바람잡이 수익 인증과 앱 설치 안내가 이어지는 경우가 많습니다.</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>지금 하지 말아야 할 것</h2>
+        <ol class="todo">
+          <li>링크 클릭·앱 설치·송금·매수를 멈추세요</li>
+          <li>대화 화면을 캡처하고 계좌번호·URL을 보관하세요</li>
+          <li>이미 송금했다면 즉시 은행에 지급정지 요청 후 경찰(112) 신고</li>
+          <li>금감원 1332 또는 유사투자자문 피해신고(02-3145-7692)로 상담</li>
+        </ol>
+      </div>
+      <div class="disc">본 결과는 자본시장법·금융감독원 소비자경보 등 공개된 기준과 메시지 문구를 자동 비교한 참고 정보로, 특정 개인·업체의 위법 여부나 사기 여부에 대한 법적 판단이 아닙니다. 공시 확인은 표시된 시각 기준 DART 검색 결과이며 누락이 있을 수 있습니다.</div>
+    </div>
+
+    <div class="dock col" id="dock" style="display:none">
+      <div class="box"><textarea placeholder="다른 메시지를 붙여넣으세요"></textarea><button class="send">공시로 확인</button></div>
+    </div>
+  </main>
+</div>
+<button class="toggle" onclick="const h=document.getElementById('home'),r=document.getElementById('res'),d=document.getElementById('dock');const on=h.style.display!=='none';h.style.display=on?'none':'';r.style.display=on?'':'none';d.style.display=on?'':'none'">빈 상태 / 결과 전환</button>
+</body>
+</html>

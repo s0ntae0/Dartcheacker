@@ -1,4 +1,4 @@
-// UI 예시 카드 3개 — 실제 상장사·실제 최근 공시 기준 (gold S01R / B01R / S28R와 동일)
+// UI 예시 칩 3개 — 실제 상장사·실제 최근 공시 기준 (gold S01R / B01R / S28R와 동일)
 // 서남(294630) 2026-09-04 단일판매ㆍ공급계약체결 662,348,400원 / 나노씨엠에스(247660) 2026-09-04 유상증자결정(일반공모 30억) / 에코프로(086520) 90일 내 공급계약 공시 없음
 // 예시 자체는 가상 메시지이며, 화면 하단 고지문("예시는 실제 사실이 아닌 가상 메시지입니다…")으로 표시한다.
 export const EXAMPLES: { key: 'high' | 'confirmed' | 'partial'; label: string; source: string; text: string }[] = [
@@ -11,13 +11,13 @@ export const EXAMPLES: { key: 'high' | 'confirmed' | 'partial'; label: string; s
   {
     key: 'confirmed',
     label: '공시 확인됨 예시',
-    source: '종목 커뮤니티 글',
+    source: '공시 공유 글',
     text: '서남 9/4 단일판매·공급계약체결 공시 났네요. 계약금액 6.6억, 최근 매출 대비 19.6%. 원문: https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20260904900634',
   },
   {
     key: 'partial',
     label: '일부 상이 예시',
-    source: '오픈채팅 공지',
+    source: '유상증자 공지',
     text: '나노씨엠에스 어제 500억 3자배정 유증 공시 났죠? 이제 시작입니다. VIP방에서 다음 타깃 공개하니 가입비 300 입금하세요.',
   },
 ];
