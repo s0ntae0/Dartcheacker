@@ -67,6 +67,12 @@ docs/
 
 LLM·DART가 실패해도 규칙층 결과로 200을 반환하고 `degraded` 배열에 사유를 표시한다.
 
+등급 경계: low <0.3 / medium 0.3~0.5 / high ≥0.5 (`data/patterns.json > scoring.levels`).
+
+## 평가 (gold 53건, `docs/eval_result.md`)
+
+사기 30건(+사본 2) level ≥ medium **31/32**, 정상 20건(+사본 1) level = low **20/21**(오발동 1건), 패턴 recall 71%, 평균 응답 약 3초. 실행: `node scripts/eval.mjs --gap 2000` (CLOVA 한도 60 req/min·60k tokens/min).
+
 ## 운영 메모
 
 - 9/7~9/11 접속 보장: UptimeRobot 등 외부 모니터로 `/api/health`를 5분 간격 핑 권장

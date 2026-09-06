@@ -12,7 +12,7 @@
 | 절차 | ① Discrimination(사기 신호 찾기) → ② Reflection("이 글이 정상일 이유"를 반박 논거로 검토: 사기 수법 설명글·피해 경험담·공식 안내·출처 있는 정보 공유·단순 질문은 패턴 아님) → ③ Synthesis(종합) |
 | 출력(JSON) | `patterns[{id, spans[], confidence}]`, `benign[{id, spans[]}]`, `reflection`(정상일 가능성 한 줄), `uncertain`(bool), `stage`(① 유인 ~ ⑧ 2차 사기) |
 | 안전장치 | span은 원문에 문자 그대로 존재하는 구절만 인정(서버가 재검증해 없으면 제거 → 환각 차단). confidence < 0.5는 무시. JSON 파싱 실패 시 LLM 결과 전체 무시. 발신자(업체·개인)에 대한 판단은 하지 않도록 지시 |
-| 점수 반영 | 규칙층 ∪ LLM 매치 집합 → noisy-OR(1 − Π(1 − wᵢ)) → 조합 가중(예: 미공개정보+긴급성 ×1.3) → 정상 신호 차감(최대 0.3, hard 매치 시 미적용) → 단독 비-hard 패턴은 medium 상한 → hard 패턴은 high 확정 → `uncertain`이면 "판단 유보" |
+| 점수 반영 | 규칙층 ∪ LLM 매치 집합 → noisy-OR(1 − Π(1 − wᵢ)) → 조합 가중(예: 미공개정보+긴급성 ×1.3) → 정상 신호 차감(최대 0.3, hard 매치 시 미적용) → 등급 경계 low <0.3 / medium 0.3~0.5 / high ≥0.5 (`patterns.json > scoring.levels`) → 단독 비-hard 패턴은 medium 상한 → hard 패턴은 high 확정 → `uncertain`이면 "판단 유보" |
 
 ### 1-2. 주장 추출 (`extractClaims`)
 
@@ -35,7 +35,7 @@ LLM은 **판정의 최종 권한을 갖지 않는다.** 위험 등급은 규칙 
 | 참조 | 공시 목록 캐시 `disclosures` (최근 90일, 10분 TTL) | OpenDART `list.json` |
 | 참조 | 유상증자·전환사채 결정, 실적, 공시 원문 | OpenDART `piicDecsn.json`, `cvbdIsDecsn.json`, `fnlttSinglAcnt.json`, `document.xml` (원문은 공급계약 계약금액·매출액 대비·계약상대 추출) |
 | 출력 | `CheckResponse`: 위험 점수·등급·근거 문구·매치 패턴(구절·법적 근거·출처)·정상 신호·진행 단계·정상 가능성 검토, 주장별 판정·설명·DART 링크·공시 의무 안내, 행동 요령·신고처, 확인 시각, 면책, 부분 장애 사유 | `lib/types.ts` |
-| 평가 | `data/gold_samples.json` 53건(사기 30·정상 20·실제 상장사 사본 3) → `docs/eval_result.md` | 실제 보도 문구를 변형해 작성, 기업명은 가상(실제 상장사와 겹치지 않음을 `find_corp`로 확인) |
+| 평가 | `data/gold_samples.json` 53건(사기 30·정상 20·실제 상장사 사본 3) → `docs/eval_result.md` (사기 ≥ medium 31/32, 정상 low 20/21, 패턴 recall 71%, 평균 3초) | 실제 보도 문구를 변형해 작성, 기업명은 가상(실제 상장사와 겹치지 않음을 `find_corp`로 확인) |
 
 ## 3. 개인정보·로그
 

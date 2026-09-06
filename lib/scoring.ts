@@ -17,6 +17,8 @@ function tidySpans(spans: string[]): string[] {
   return u.filter((s) => !u.some((o) => o !== s && o.includes(s)));
 }
 const BENIGN_PENALTY_CAP = 0.3;
+// level 경계는 patterns.json > scoring.levels 에서 읽는다 (low [0,0.3) / medium [0.3,0.5) / high [0.5,1])
+const LEVELS = SCORING.levels as Record<'low' | 'medium' | 'high', [number, number]>;
 
 export interface ScoreResult {
   score: number;
@@ -74,7 +76,7 @@ export function computeScore(rule: { patterns: PatternHit[]; benign: BenignHit[]
   score = Math.max(0, Math.min(1, score));
 
   // 6. level
-  let level: RiskLevel = score < 0.3 ? 'low' : score < 0.6 ? 'medium' : 'high';
+  let level: RiskLevel = score < LEVELS.medium[0] ? 'low' : score < LEVELS.high[0] ? 'medium' : 'high';
   if (patterns.length === 1 && !hard && level === 'high') level = 'medium';
   if (hard) level = 'high';
   else if (llm?.uncertain) level = 'uncertain';
