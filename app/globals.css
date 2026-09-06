@@ -52,10 +52,10 @@ h1,h2,h3{margin:0;font-weight:600;letter-spacing:-.01em}
 .send{height:36px;padding:0 14px;border-radius:9px;background:var(--ink);color:#fff;font-weight:600;font-size:13.5px;display:inline-flex;align-items:center;gap:8px}
 .send:hover{background:#1c2130}
 .send kbd{font:inherit;font-size:10.5px;color:rgba(255,255,255,.55);border:1px solid rgba(255,255,255,.22);border-radius:4px;padding:0 4px;line-height:15px}
-.chips{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-top:16px}
-.chip{border:1px solid var(--line);border-radius:999px;padding:6px 12px;font-size:12.5px;color:var(--ink-2);background:#fff}
-.chip:hover{border-color:var(--ink-4);color:var(--ink)}
-.chip span{color:var(--ink-4);margin-right:6px}
+.chips{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-top:18px}
+.chip{display:inline-flex;align-items:center;height:34px;border:1px solid var(--ink-4);border-radius:999px;padding:7px 14px;font-size:12.5px;font-weight:500;color:var(--ink);background:#fff}
+.chip:hover{border-color:var(--ink-2);background:var(--bg-2);color:var(--ink)}
+.chip span{color:var(--ink-3);font-weight:400;margin-right:6px}
 .basis{text-align:center;font-size:11.5px;color:var(--ink-4);margin-top:22px;line-height:1.7}
 .basis b{color:var(--ink-3);font-weight:500}
 
@@ -144,6 +144,9 @@ ol.todo li::before{content:counter(s);position:absolute;left:0;top:8px;width:16p
 /* 입력 오류·예시 고지 */
 .err{color:var(--hi);font-size:12.5px;text-align:center;margin-top:10px}
 .chipsnote{text-align:center;font-size:11.5px;color:var(--ink-4);margin-top:10px;line-height:1.6}
+/* 로고 클릭 → 홈 (사이드바 .brand, 모바일 .mbar .mlogo) */
+button.brand{width:100%;text-align:left;cursor:pointer;color:var(--ink)} button.brand:hover{opacity:.8}
+.mbar .mlogo{font-weight:700;font-size:inherit;padding:8px 4px;cursor:pointer;color:var(--ink)} .mbar .mlogo:hover{opacity:.8}
 /* 다시 검사 링크 */
 .meta .more{display:inline-block}
 /* 모바일 드로어: 사이드바를 좌측 고정 패널로, 바깥 스크림 클릭 시 닫힘 */

@@ -86,15 +86,15 @@ function grow(el: HTMLTextAreaElement, max: number) {
   el.style.height = `${Math.min(el.scrollHeight, max)}px`;
 }
 
-function Brand() {
+function Brand({ onClick }: { onClick: () => void }) {
   return (
-    <div className="brand">
+    <button type="button" className="brand" onClick={onClick} aria-label="찌라시체크 홈으로">
       <svg viewBox="0 0 18 18" fill="none" aria-hidden="true">
         <rect x="1" y="1" width="16" height="16" rx="4" stroke="currentColor" strokeWidth="1.6" />
         <path d="M5 9.2l2.6 2.6L13 6.6" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
       </svg>
       찌라시체크
-    </div>
+    </button>
   );
 }
 
@@ -321,7 +321,7 @@ export default function CheckApp({ contacts, disclaimer, weights }: { contacts: 
     <div className="app">
       {drawer && <button type="button" className="scrim" aria-label="메뉴 닫기" onClick={() => setDrawer(false)} />}
       <aside className={`side${drawer ? ' open' : ''}`} id="side" aria-label="사이드바">
-        <Brand />
+        <Brand onClick={newCheck} />
         <button type="button" className="newbtn" onClick={newCheck}>＋ 새 검사</button>
         <div className="hist" aria-label="검사 이력">
           {history.length === 0 ? (
@@ -363,7 +363,7 @@ export default function CheckApp({ contacts, disclaimer, weights }: { contacts: 
           <button type="button" className="hb" aria-label="메뉴 열기" aria-expanded={drawer} aria-controls="side" onClick={() => setDrawer(true)}>
             <i /><i /><i />
           </button>
-          찌라시체크
+          <button type="button" className="mlogo" onClick={newCheck} aria-label="찌라시체크 홈으로">찌라시체크</button>
         </div>
 
         {!result ? (
