@@ -33,7 +33,9 @@ Supabase 스키마는 `supabase/schema.sql` (이미 적용됨, 참고용). `find
 
 ```
 app/
-  page.tsx                 단일 페이지 UI (모바일 우선)
+  page.tsx                 서버 컴포넌트(신고처·면책만 넘김)
+  check-app.tsx            단일 페이지 UI 클라이언트 컴포넌트 (모바일 우선)
+  api/stats/route.ts       GET → {today:{total,high}, all:{total}} (60초 캐시)
   api/check/route.ts       POST {text} → CheckResponse (전체 파이프라인, maxDuration 60s)
   api/health/route.ts      GET → {ok, corps_count, checked_at}
 lib/
