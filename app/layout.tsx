@@ -9,7 +9,16 @@ export const metadata: Metadata = {
   metadataBase: new URL("https://dartcheacker.vercel.app"),
   title: TITLE,
   description: DESC,
-  openGraph: { title: TITLE, description: DESC, siteName: "찌라시체크", type: "website", locale: "ko_KR", url: "/" },
+  openGraph: {
+    title: TITLE,
+    description: DESC,
+    siteName: "찌라시체크",
+    type: "website",
+    locale: "ko_KR",
+    url: "/",
+    images: [{ url: "/og.png", width: 1200, height: 630, alt: "찌라시체크" }],
+  },
+  twitter: { card: "summary_large_image", title: TITLE, description: DESC, images: ["/og.png"] },
 };
 
 export const viewport: Viewport = { width: "device-width", initialScale: 1, themeColor: "#0B0F19" };
