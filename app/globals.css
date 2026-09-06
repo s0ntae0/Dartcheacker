@@ -156,3 +156,14 @@ button.brand{width:100%;text-align:left;cursor:pointer;color:var(--ink)} button.
   .scrim{display:block;position:fixed;inset:0;background:rgba(11,15,25,.35);z-index:29;border:0;padding:0}
   .mbar button.hb{box-sizing:content-box;padding:12px 10px;margin-left:-10px}
 }
+/* 판정 기준 페이지(/patterns) */
+.doc{flex:1;padding:28px 0 60px}
+.doc h1{font-size:22px;letter-spacing:-.02em;margin-bottom:8px}
+.lead{font-size:13.5px;color:var(--ink-2);line-height:1.7;margin:0 0 12px}
+.rules{margin:0 0 18px;padding-left:18px;font-size:12.5px;color:var(--ink-3);line-height:1.8}
+.pat{padding:14px 0;border-top:1px solid var(--line-2)} .pat:first-of-type{border-top:0;padding-top:0}
+.pat .pn{display:flex;align-items:center;gap:8px;flex-wrap:wrap} .pat .pc{margin-top:0}
+.pat .desc{font-size:13.5px;color:var(--ink-2);margin:4px 0 0;line-height:1.6}
+.pat .legal{margin:6px 0 0}
+.pat .src{margin-top:6px;font-size:12.5px;color:var(--ink-3);line-height:1.7} .pat .src a{color:var(--ink-2);border-bottom:1px solid var(--line)}
+.pat .nx{font-size:12.5px;color:var(--mid);margin:6px 0 0;line-height:1.6}
